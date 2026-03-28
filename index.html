@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SiteBuilder AI</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--sf:#13131d;--sf2:#1c1c2e;--sf3:#252542;--bd:#2d2d50;--tx:#e0e0ff;--tx2:#8888aa;--ac:#6366f1;--ac2:#818cf8;--gn:#22c55e;--rd:#ef4444;--or:#f97316}
+html,body{height:100%;overflow:hidden;font-family:system-ui,sans-serif;background:var(--bg);color:var(--tx)}
+
+/* TOPBAR */
+.top{height:44px;background:var(--sf);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 10px;gap:6px}
+.top .logo{font-size:16px;font-weight:800;background:linear-gradient(135deg,var(--ac),#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.top input{background:var(--sf2);border:1px solid var(--bd);border-radius:5px;padding:4px 8px;color:var(--tx);font-size:12px;width:140px}
+.top .sp{flex:1}
+.top button,.tbtn{background:var(--sf2);border:1px solid var(--bd);color:var(--tx2);padding:5px 10px;border-radius:5px;font-size:11px;cursor:pointer}
+.top button:hover,.tbtn:hover{background:var(--sf3);color:var(--tx);border-color:var(--ac)}
+.top .pri{background:var(--ac);border-color:var(--ac);color:#fff}
+.top .grn{background:var(--gn);border-color:var(--gn);color:#fff}
+.sep{width:1px;height:20px;background:var(--bd);margin:0 4px}
+
+/* LAYOUT */
+.main{display:flex;height:calc(100vh - 44px)}
+.left{width:240px;background:var(--sf);border-right:1px solid var(--bd);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.left .sb{padding:6px;border-bottom:1px solid var(--bd)}
+.left .sb input{width:100%;background:var(--sf2);border:1px solid var(--bd);border-radius:5px;padding:5px 8px;color:var(--tx);font-size:11px}
+.cats{flex:1;overflow-y:auto;padding:4px 0}
+.cat-h{padding:5px 10px;font-size:10px;font-weight:700;color:var(--tx2);text-transform:uppercase;cursor:pointer;display:flex;justify-content:space-between}
+.cat-h:hover{color:var(--tx)}
+.cat-items{padding:0 5px 4px}
+.cat-items.hid{display:none}
+.ci{padding:4px 7px;border-radius:5px;font-size:11px;cursor:grab;display:flex;align-items:center;gap:6px;border:1px solid transparent}
+.ci:hover{background:var(--sf2);border-color:var(--bd)}
+.ci .ic{width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px}
+
+/* CANVAS */
+.canvas-wrap{flex:1;overflow-y:auto;background:#f5f5f5;position:relative}
+.canvas{max-width:1200px;margin:0 auto;min-height:100%;background:#fff;position:relative}
+.canvas.tablet{max-width:768px}
+.canvas.mobile{max-width:375px}
+.comp{position:relative;cursor:pointer;border:2px solid transparent;transition:border-color .15s}
+.comp:hover{border-color:#6366f166}
+.comp.sel{border-color:var(--ac);box-shadow:0 0 0 2px #6366f133}
+.comp-bar{display:none;position:absolute;top:-28px;right:0;background:var(--ac);border-radius:4px;padding:2px 4px;gap:2px;z-index:10}
+.comp.sel .comp-bar{display:flex}
+.comp-bar button{background:none;border:none;color:#fff;cursor:pointer;font-size:12px;padding:2px 4px;border-radius:3px}
+.comp-bar button:hover{background:#ffffff33}
+
+/* RIGHT */
+.right{width:280px;background:var(--sf);border-left:1px solid var(--bd);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.rtabs{display:flex;border-bottom:1px solid var(--bd)}
+.rtabs button{flex:1;padding:8px;background:none;border:none;border-bottom:2px solid transparent;color:var(--tx2);cursor:pointer;font-size:11px}
+.rtabs button.act{color:var(--ac);border-bottom-color:var(--ac)}
+.rpanel{flex:1;overflow-y:auto;padding:10px;display:none}
+.rpanel.act{display:block}
+.fg{margin-bottom:10px}
+.fg label{font-size:10px;color:var(--tx2);display:block;margin-bottom:3px}
+.fg input,.fg select,.fg textarea{width:100%;background:var(--sf2);border:1px solid var(--bd);border-radius:5px;padding:5px 7px;color:var(--tx);font-size:11px}
+.fg textarea{height:60px;resize:vertical}
+
+/* AI CHAT */
+.msgs{flex:1;overflow-y:auto;padding:8px}
+.msg{padding:7px 9px;border-radius:7px;margin-bottom:5px;font-size:11px;max-width:90%}
+.msg.u{background:var(--ac);color:#fff;margin-left:auto}
+.msg.a{background:var(--sf2)}
+.chin{padding:6px;border-top:1px solid var(--bd);display:flex;gap:4px}
+.chin input{flex:1;background:var(--sf2);border:1px solid var(--bd);border-radius:5px;padding:6px 8px;color:var(--tx);font-size:11px}
+.chin button{background:var(--ac);border:none;color:#fff;padding:6px 10px;border-radius:5px;cursor:pointer;font-size:11px}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:#000a;z-index:999;align-items:center;justify-content:center}
+.modal-bg.show{display:flex}
+.modal{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:20px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto}
+.modal h3{margin-bottom:12px;font-size:16px}
+.modal .close{float:right;background:none;border:none;color:var(--tx2);font-size:18px;cursor:pointer}
+.provider-card{background:var(--sf2);border:1px solid var(--bd);border-radius:8px;padding:10px;margin-bottom:8px;cursor:pointer}
+.provider-card:hover{border-color:var(--ac)}
+.provider-card.active{border-color:var(--gn);background:var(--sf3)}
+.provider-card h4{font-size:13px;margin-bottom:4px}
+.provider-card p{font-size:10px;color:var(--tx2)}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="logo">⚡ SiteBuilder AI</div>
+  <input id="projName" value="Мой сайт">
+  <div class="sep"></div>
+  <button onclick="undo()">↩</button>
+  <button onclick="redo()">↪</button>
+  <div class="sep"></div>
+  <button onclick="saveProj()">💾</button>
+  <button onclick="loadProj()">📂</button>
+  <button class="grn" onclick="exportHTML()">📤 Export</button>
+  <div class="sep"></div>
+  <button onclick="setView('d')" id="vd">🖥</button>
+  <button onclick="setView('t')" id="vt">📱</button>
+  <button onclick="setView('m')" id="vm">📲</button>
+  <div class="sep"></div>
+  <button onclick="openSettings()">⚙️ AI</button>
+  <div class="sp"></div>
+  <button class="pri" onclick="openAIGen()">🤖 Сгенерировать</button>
+</div>
+
+<div class="main">
+  <div class="left">
+    <div class="sb"><input placeholder="Поиск компонентов..." id="searchInp" oninput="filterComps()"></div>
+    <div class="cats" id="catList"></div>
+  </div>
+  <div class="canvas-wrap" id="canvasWrap">
+    <div class="canvas" id="canvas"></div>
+  </div>
+  <div class="right">
+    <div class="rtabs">
+      <button class="act" onclick="rtab('props')">📋 Свойства</button>
+      <button onclick="rtab('ai')">🤖 AI Чат</button>
+    </div>
+    <div class="rpanel act" id="pProps">
+      <div id="noSel" style="text-align:center;color:var(--tx2);padding:30px">Выберите компонент</div>
+      <div id="propFields" style="display:none"></div>
+    </div>
+    <div class="rpanel" id="pAI">
+      <div class="msgs" id="chatMsgs">
+        <div class="msg a">👋 Опишите сайт, и я соберу его из компонентов!</div>
+      </div>
+      <div class="chin">
+        <input id="chatInp" placeholder="Опишите сайт..." onkeydown="if(event.key==='Enter')sendAI()">
+        <button onclick="sendAI()">→</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <button class="close" onclick="closeSettings()">✕</button>
+    <h3>⚙️ Настройки AI</h3>
+    <p style="font-size:11px;color:var(--tx2);margin-bottom:12px">Выберите провайдера нейросети. Без ключа работает встроенный движок.</p>
+    <div id="providerList"></div>
+    <div class="fg" style="margin-top:12px">
+      <label>API Ключ (если нужен)</label>
+      <input id="apiKeyInp" placeholder="Вставьте ключ...">
+    </div>
+    <div class="fg">
+      <label>Модель</label>
+      <select id="modelSel"></select>
+    </div>
+    <button class="tbtn" style="width:100%;margin-top:8px;background:var(--ac);color:#fff;border-color:var(--ac)" onclick="saveSettings()">Сохранить</button>
+  </div>
+</div>
+
+<!-- AI Gen Modal -->
+<div class="modal-bg" id="genModal">
+  <div class="modal">
+    <button class="close" onclick="closeGen()">✕</button>
+    <h3>🤖 AI Генератор сайта</h3>
+    <div class="fg">
+      <label>Опишите какой сайт нужен</label>
+      <textarea id="genDesc" placeholder="Например: Лендинг для кофейни с меню, отзывами и формой заказа"></textarea>
+    </div>
+    <div class="fg">
+      <label>Стиль</label>
+      <select id="genStyle">
+        <option>Современный</option><option>Минимализм</option><option>Яркий</option><option>Корпоративный</option><option>Креативный</option>
+      </select>
+    </div>
+    <button class="tbtn" style="width:100%;background:var(--ac);color:#fff;border-color:var(--ac)" onclick="generateSite()">⚡ Сгенерировать</button>
+  </div>
+</div>
+
+<script>
+// ============ PROVIDERS ============
+const PROVIDERS = [
+  {id:'builtin',name:'🔧 Встроенный движок',desc:'Работает без API ключа. Шаблонная генерация.',free:true,models:['template-v1'],help:'Не требует ключа!'},
+  {id:'hf',name:'🤗 Hugging Face',desc:'Бесплатные модели. Нужен токен для скорости.',free:true,models:['mistralai/Mistral-7B-Instruct-v0.3','google/gemma-2-2b-it','HuggingFaceH4/zephyr-7b-beta'],help:'Получить ключ: huggingface.co/settings/tokens → New token → Read'},
+  {id:'groq',name:'⚡ Groq',desc:'Очень быстро. Бесплатный tier.',free:true,models:['llama-3.1-70b-versatile','llama-3.1-8b-instant','gemma2-9b-it','mixtral-8x7b-32768'],help:'Получить ключ: console.groq.com/keys → Create API Key'},
+  {id:'gemini',name:'💎 Google Gemini',desc:'Мощная модель. Бесплатный tier.',free:true,models:['gemini-1.5-flash','gemini-1.5-pro'],help:'Получить ключ: aistudio.google.com/app/apikey'},
+  {id:'mistral',name:'🌀 Mistral AI',desc:'Быстрая европейская модель.',free:true,models:['mistral-small-latest','mistral-medium-latest','open-mistral-7b'],help:'Получить ключ: console.mistral.ai/api-keys'},
+  {id:'openrouter',name:'🌐 OpenRouter',desc:'Доступ к сотням моделей.',free:false,models:['meta-llama/llama-3.1-8b-instruct:free','google/gemma-2-9b-it:free','mistralai/mistral-7b-instruct:free'],help:'Получить ключ: openrouter.ai/keys'},
+  {id:'ollama',name:'🦙 Ollama (локально)',desc:'Запуск на своём ПК. Без интернета.',free:true,models:['llama3.1','mistral','gemma2','phi3'],help:'Установить: ollama.com → ollama run llama3.1'}
+];
+
+let settings = {provider:'builtin',apiKey:'',model:'template-v1'};
+try{const s=localStorage.getItem('sb_settings');if(s)settings=JSON.parse(s);}catch(e){}
+
+// ============ COMPONENTS ============
+const C = [
+  // Navigation
+  {id:'header',cat:'nav',name:'Header',icon:'🔝',html:()=>`<header style="background:#1a1a2e;color:#fff;padding:16px 32px;display:flex;align-items:center;justify-content:space-between"><div style="font-size:22px;font-weight:800">🚀 MySite</div><nav style="display:flex;gap:20px;font-size:14px"><a href="#" style="color:#ccc;text-decoration:none">Главная</a><a href="#" style="color:#ccc;text-decoration:none">О нас</a><a href="#" style="color:#ccc;text-decoration:none">Услуги</a><a href="#" style="color:#ccc;text-decoration:none">Контакты</a></nav></header>`},
+  {id:'sticky_nav',cat:'nav',name:'Sticky Navbar',icon:'📌',html:()=>`<nav style="background:#fff;padding:12px 32px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px #0001;position:sticky;top:0;z-index:100"><b style="font-size:18px">Brand</b><div style="display:flex;gap:16px;font-size:13px"><a href="#" style="color:#333;text-decoration:none">Home</a><a href="#" style="color:#333;text-decoration:none">About</a><a href="#" style="color:#333;text-decoration:none">Contact</a></div></nav>`},
+  {id:'sidebar_menu',cat:'nav',name:'Sidebar Menu',icon:'☰',html:()=>`<div style="background:#1e1e3a;color:#fff;padding:20px;width:220px;min-height:200px"><h3 style="margin-bottom:16px">☰ Меню</h3><div style="display:flex;flex-direction:column;gap:8px"><a href="#" style="color:#aaa;text-decoration:none;padding:6px 0">🏠 Главная</a><a href="#" style="color:#aaa;text-decoration:none;padding:6px 0">📋 Каталог</a><a href="#" style="color:#aaa;text-decoration:none;padding:6px 0">💬 Отзывы</a><a href="#" style="color:#aaa;text-decoration:none;padding:6px 0">📞 Контакты</a></div></div>`},
+  {id:'breadcrumbs',cat:'nav',name:'Breadcrumbs',icon:'🔗',html:()=>`<div style="padding:10px 32px;font-size:12px;color:#888;background:#f9f9f9">Главная / Каталог / <span style="color:#333">Товар</span></div>`},
+  {id:'mega_menu',cat:'nav',name:'Mega Menu',icon:'🗂',html:()=>`<div style="background:#fff;padding:20px 32px;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;box-shadow:0 4px 12px #0001"><div><h4 style="color:#6366f1;margin-bottom:8px;font-size:13px">Продукты</h4><div style="font-size:12px;color:#666;line-height:2">Продукт 1<br>Продукт 2<br>Продукт 3</div></div><div><h4 style="color:#6366f1;margin-bottom:8px;font-size:13px">Услуги</h4><div style="font-size:12px;color:#666;line-height:2">Услуга 1<br>Услуга 2<br>Услуга 3</div></div><div><h4 style="color:#6366f1;margin-bottom:8px;font-size:13px">Компания</h4><div style="font-size:12px;color:#666;line-height:2">О нас<br>Команда<br>Вакансии</div></div><div><h4 style="color:#6366f1;margin-bottom:8px;font-size:13px">Поддержка</h4><div style="font-size:12px;color:#666;line-height:2">FAQ<br>Документация<br>Контакты</div></div></div>`},
+
+  // Hero
+  {id:'hero_cta',cat:'hero',name:'Hero CTA',icon:'🌟',html:()=>`<section style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:80px 40px;text-align:center"><h1 style="font-size:42px;font-weight:800;margin-bottom:16px">Создавайте будущее</h1><p style="font-size:18px;opacity:.85;margin-bottom:30px;max-width:600px;margin-left:auto;margin-right:auto">Инновационные решения для вашего бизнеса</p><button style="background:#fff;color:#764ba2;border:none;padding:14px 36px;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer">Начать бесплатно →</button></section>`},
+  {id:'hero_video',cat:'hero',name:'Hero Video',icon:'🎬',html:()=>`<section style="background:#000;color:#fff;padding:80px 40px;text-align:center;position:relative"><div style="font-size:60px;margin-bottom:16px">▶️</div><h1 style="font-size:36px;font-weight:800;margin-bottom:12px">Смотрите видео</h1><p style="opacity:.7;font-size:16px">Узнайте больше о нашем продукте</p></section>`},
+  {id:'hero_slider',cat:'hero',name:'Hero Slider',icon:'🎠',html:()=>`<section style="background:linear-gradient(135deg,#f093fb,#f5576c);color:#fff;padding:80px 40px;text-align:center"><div style="font-size:12px;margin-bottom:8px;opacity:.7">● ○ ○</div><h1 style="font-size:38px;font-weight:800;margin-bottom:12px">Слайд 1 из 3</h1><p style="font-size:16px;opacity:.85">Перетаскивайте для смены слайдов</p></section>`},
+  {id:'hero_form',cat:'hero',name:'Hero + Form',icon:'📝',html:()=>`<section style="background:linear-gradient(135deg,#2d3436,#636e72);color:#fff;padding:60px 40px;display:flex;align-items:center;justify-content:center;gap:60px;flex-wrap:wrap"><div style="max-width:400px"><h1 style="font-size:34px;font-weight:800;margin-bottom:12px">Получите консультацию</h1><p style="opacity:.7">Заполните форму и мы свяжемся</p></div><div style="background:#fff;border-radius:12px;padding:24px;min-width:280px"><input style="width:100%;padding:10px;margin-bottom:8px;border:1px solid #ddd;border-radius:6px" placeholder="Имя"><input style="width:100%;padding:10px;margin-bottom:8px;border:1px solid #ddd;border-radius:6px" placeholder="Email"><button style="width:100%;padding:12px;background:#6366f1;color:#fff;border:none;border-radius:6px;font-weight:700;cursor:pointer">Отправить</button></div></section>`},
+  {id:'hero_full',cat:'hero',name:'Hero Fullscreen',icon:'🖥',html:()=>`<section style="background:linear-gradient(135deg,#0c0c1d,#1a1a3e);color:#fff;padding:120px 40px;text-align:center;min-height:400px;display:flex;flex-direction:column;align-items:center;justify-content:center"><h1 style="font-size:52px;font-weight:900;margin-bottom:20px;background:linear-gradient(90deg,#6366f1,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Невероятный продукт</h1><p style="font-size:20px;opacity:.6;max-width:500px">Революция начинается здесь и сейчас</p></section>`},
+
+  // Content
+  {id:'text_block',cat:'content',name:'Text Block',icon:'📄',html:()=>`<div style="padding:30px 40px;font-size:15px;line-height:1.7;color:#444;max-width:800px;margin:0 auto">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation.</div>`},
+  {id:'heading',cat:'content',name:'Heading',icon:'🔤',html:()=>`<div style="padding:20px 40px;text-align:center"><h2 style="font-size:32px;font-weight:800;color:#1a1a2e">Заголовок секции</h2><p style="color:#888;margin-top:8px">Подзаголовок с описанием</p></div>`},
+  {id:'rich_text',cat:'content',name:'Rich Text',icon:'📰',html:()=>`<div style="padding:30px 40px;max-width:800px;margin:0 auto"><h3 style="font-size:22px;margin-bottom:12px;color:#1a1a2e">Богатый текст</h3><p style="color:#555;line-height:1.7;margin-bottom:12px">Это пример <b>жирного</b>, <i>курсивного</i> и <a href="#" style="color:#6366f1">ссылочного</a> текста.</p><ul style="color:#555;padding-left:20px;line-height:2"><li>Первый пункт списка</li><li>Второй пункт</li><li>Третий пункт</li></ul></div>`},
+  {id:'columns',cat:'content',name:'Columns',icon:'📊',html:()=>`<div style="padding:30px 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:20px"><div style="background:#f8f8ff;padding:20px;border-radius:10px;text-align:center"><div style="font-size:28px;margin-bottom:8px">📦</div><h4>Колонка 1</h4><p style="font-size:12px;color:#888;margin-top:6px">Описание первой колонки</p></div><div style="background:#f8f8ff;padding:20px;border-radius:10px;text-align:center"><div style="font-size:28px;margin-bottom:8px">⚡</div><h4>Колонка 2</h4><p style="font-size:12px;color:#888;margin-top:6px">Описание второй колонки</p></div><div style="background:#f8f8ff;padding:20px;border-radius:10px;text-align:center"><div style="font-size:28px;margin-bottom:8px">🎯</div><h4>Колонка 3</h4><p style="font-size:12px;color:#888;margin-top:6px">Описание третьей колонки</p></div></div>`},
+  {id:'img_text',cat:'content',name:'Image+Text',icon:'🖼',html:()=>`<div style="padding:40px;display:flex;align-items:center;gap:40px;flex-wrap:wrap"><div style="flex:1;min-width:250px;height:200px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:12px"></div><div style="flex:1;min-width:250px"><h3 style="font-size:24px;margin-bottom:12px;color:#1a1a2e">Заголовок</h3><p style="color:#666;line-height:1.7">Описание рядом с изображением. Идеально для секций "О нас" или описания продукта.</p></div></div>`},
+  {id:'blockquote',cat:'content',name:'Blockquote',icon:'💬',html:()=>`<div style="padding:30px 40px;max-width:700px;margin:0 auto"><blockquote style="border-left:4px solid #6366f1;padding:16px 20px;background:#f8f8ff;border-radius:0 8px 8px 0;font-style:italic;color:#555">"Лучший способ предсказать будущее — создать его."<div style="margin-top:8px;font-style:normal;font-size:12px;color:#999">— Питер Друкер</div></blockquote></div>`},
+  {id:'divider',cat:'content',name:'Divider',icon:'➖',html:()=>`<div style="padding:10px 40px"><hr style="border:none;border-top:1px solid #e0e0e0"></div>`},
+  {id:'spacer',cat:'content',name:'Spacer',icon:'↕️',html:()=>`<div style="height:60px"></div>`},
+  {id:'code_block',cat:'content',name:'Code Block',icon:'💻',html:()=>`<div style="padding:20px 40px;max-width:800px;margin:0 auto"><pre style="background:#1e1e3a;color:#e0e0ff;padding:20px;border-radius:10px;font-size:13px;overflow-x:auto;font-family:monospace">const app = express();
+app.get('/', (req, res) => {
+  res.send('Hello World!');
+});
+app.listen(3000);</pre></div>`},
+  {id:'markdown',cat:'content',name:'Markdown',icon:'📝',html:()=>`<div style="padding:20px 40px;max-width:800px;margin:0 auto;font-size:14px;color:#444;line-height:1.8"><h3># Markdown Block</h3><p>Поддержка **markdown** разметки. Списки, ссылки, код.</p></div>`},
+
+  // Sections
+  {id:'features_grid',cat:'sections',name:'Features Grid',icon:'⚡',html:()=>`<section style="padding:50px 40px;text-align:center"><h2 style="font-size:28px;font-weight:800;margin-bottom:30px;color:#1a1a2e">Наши возможности</h2><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">${['🚀 Быстрый старт|Начните за 5 минут','🔒 Безопасность|Защита данных','📈 Аналитика|Отслеживайте рост','💬 Поддержка 24/7|Всегда на связи','🎨 Кастомизация|Под ваш бренд','⚡ Производительность|Молниеносная'].map(f=>{const[t,d]=f.split('|');return`<div style="padding:24px;background:#f8f8ff;border-radius:12px"><div style="font-size:28px;margin-bottom:8px">${t.split(' ')[0]}</div><h4 style="margin-bottom:4px">${t.split(' ').slice(1).join(' ')}</h4><p style="font-size:12px;color:#888">${d}</p></div>`}).join('')}</div></section>`},
+  {id:'features_list',cat:'sections',name:'Features List',icon:'📋',html:()=>`<section style="padding:40px;max-width:700px;margin:0 auto"><h2 style="font-size:26px;font-weight:800;margin-bottom:20px;color:#1a1a2e">Преимущества</h2>${['✅ Бесплатный старт без кредитной карты','✅ Неограниченное количество проектов','✅ Экспорт в любой формат','✅ Интеграция с 100+ сервисами'].map(f=>`<div style="padding:12px 0;border-bottom:1px solid #eee;font-size:14px;color:#444">${f}</div>`).join('')}</section>`},
+  {id:'about',cat:'sections',name:'About Us',icon:'👥',html:()=>`<section style="padding:50px 40px;display:flex;align-items:center;gap:40px;flex-wrap:wrap;background:#f8f8ff"><div style="flex:1;min-width:250px"><h2 style="font-size:28px;font-weight:800;margin-bottom:12px;color:#1a1a2e">О нашей компании</h2><p style="color:#666;line-height:1.7">Мы создаём инновационные продукты с 2020 года. Наша команда — это 50+ профессионалов, которые любят своё дело.</p></div><div style="flex:1;min-width:250px;height:250px;background:linear-gradient(135deg,#a8edea,#fed6e3);border-radius:16px"></div></section>`},
+  {id:'team',cat:'sections',name:'Team',icon:'👨‍💻',html:()=>`<section style="padding:50px 40px;text-align:center"><h2 style="font-size:28px;font-weight:800;margin-bottom:30px;color:#1a1a2e">Наша команда</h2><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px">${['Алексей|CEO','Мария|Дизайнер','Дмитрий|Разработчик','Анна|Маркетолог'].map((p,i)=>{const[n,r]=p.split('|');return`<div style="text-align:center"><div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,${['#667eea,#764ba2','#f093fb,#f5576c','#4facfe,#00f2fe','#43e97b,#38f9d7'][i]});margin:0 auto 10px"></div><h4 style="font-size:14px">${n}</h4><p style="font-size:11px;color:#888">${r}</p></div>`}).join('')}</div></section>`},
+  {id:'stats',cat:'sections',name:'Stats',icon:'📊',html:()=>`<section style="padding:40px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;text-align:center">${['10K+|Клиентов','500+|Проектов','99.9%|Uptime','24/7|Поддержка'].map(s=>{const[n,l]=s.split('|');return`<div><div style="font-size:32px;font-weight:800">${n}</div><div style="font-size:12px;opacity:.8">${l}</div></div>`}).join('')}</section>`},
+  {id:'timeline',cat:'sections',name:'Timeline',icon:'📅',html:()=>`<section style="padding:40px;max-width:600px;margin:0 auto"><h2 style="font-size:26px;font-weight:800;margin-bottom:20px;text-align:center;color:#1a1a2e">История</h2>${['2020|Основание компании','2021|Первые 1000 клиентов','2022|Запуск v2.0','2023|Международная экспансия'].map(t=>{const[y,d]=t.split('|');return`<div style="display:flex;gap:16px;padding:16px 0;border-left:2px solid #6366f1;padding-left:20px;margin-left:20px;position:relative"><div style="position:absolute;left:-7px;top:20px;width:12px;height:12px;border-radius:50%;background:#6366f1"></div><div><b style="color:#6366f1">${y}</b><p style="font-size:13px;color:#666">${d}</p></div></div>`}).join('')}</section>`},
+  {id:'steps',cat:'sections',name:'Steps',icon:'🔢',html:()=>`<section style="padding:50px 40px;text-align:center"><h2 style="font-size:28px;font-weight:800;margin-bottom:30px;color:#1a1a2e">Как это работает</h2><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:30px">${['1|Регистрация|Создайте аккаунт за 30 секунд','2|Настройка|Выберите шаблон и настройте','3|Запуск|Опубликуйте и начните получать клиентов'].map(s=>{const[n,t,d]=s.split('|');return`<div><div style="width:48px;height:48px;border-radius:50%;background:#6366f1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;margin:0 auto 12px">${n}</div><h4>${t}</h4><p style="font-size:12px;color:#888;margin-top:6px">${d}</p></div>`}).join('')}</div></section>`},
+  {id:'partners',cat:'sections',name:'Partners',icon:'🤝',html:()=>`<section style="padding:30px 40px;text-align:center;background:#f8f8ff"><p style="font-size:12px;color:#999;margin-bottom:16px">Нам доверяют</p><div style="display:flex;justify-content:center;gap:40px;flex-wrap:wrap;opacity:.5">${['Google','Apple','Meta','Amazon','Microsoft'].map(n=>`<span style="font-size:18px;font-weight:700;color:#333">${n}</span>`).join('')}</div></section>`},
+
+  // Commerce
+  {id:'pricing',cat:'commerce',name:'Pricing',icon:'💰',html:()=>`<section style="padding:50px 40px;text-align:center"><h2 style="font-size:28px;font-weight:800;margin-bottom:30px;color:#1a1a2e">Тарифы</h2><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:900px;margin:0 auto">${['Free|0₽|3 проекта|1GB|Email','Pro|990₽/мес|∞ проектов|50GB|Приоритет','Business|2990₽/мес|∞ всё|500GB|24/7 VIP'].map((p,i)=>{const a=p.split('|');const pop=i===1;return`<div style="padding:30px;border-radius:16px;border:2px solid ${pop?'#6366f1':'#eee'};${pop?'background:#f8f8ff;transform:scale(1.05)':''}"><h3 style="font-size:18px">${a[0]}</h3><div style="font-size:32px;font-weight:800;color:#6366f1;margin:12px 0">${a[1]}</div><div style="font-size:12px;color:#888;line-height:2.2">${a.slice(2).join('<br>')}</div><button style="margin-top:16px;padding:10px 24px;background:${pop?'#6366f1':'#eee'};color:${pop?'#fff':'#333'};border:none;border-radius:8px;cursor:pointer;font-weight:600">Выбрать</button></div>`}).join('')}</div></section>`},
+  {id:'product_card',cat:'commerce',name:'Product Card',icon:'🛍',html:()=>`<div style="padding:30px 40px;display:flex;justify-content:center"><div style="width:280px;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px #0001"><div style="height:200px;background:linear-gradient(135deg,#a8edea,#fed6e3)"></div><div style="padding:16px"><h4>Продукт</h4><p style="font-size:12px;color:#888;margin:6px 0">Описание продукта</p><div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px"><span style="font-size:20px;font-weight:800;color:#6366f1">2 990₽</span><button style="padding:8px 16px;background:#6366f1;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px">В корзину</button></div></div></div></div>`},
+  {id:'product_grid',cat:'commerce',name:'Product Grid',icon:'🏪',html:()=>`<section style="padding:40px"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">${[1,2,3].map(i=>`<div style="border-radius:12px;overflow:hidden;box-shadow:0 2px 12px #0001"><div style="height:160px;background:linear-gradient(${135+i*30}deg,#667eea,#764ba2)"></div><div style="padding:14px"><h4 style="font-size:14px">Товар ${i}</h4><p style="font-size:12px;color:#888;margin:4px 0">Описание</p><b style="color:#6366f1">${i}990₽</b></div></div>`).join('')}</div></section>`},
+  {id:'cta_banner',cat:'commerce',name:'CTA Banner',icon:'📢',html:()=>`<section style="padding:50px 40px;background:linear-gradient(135deg,#f5576c,#ff6a88);color:#fff;text-align:center"><h2 style="font-size:30px;font-weight:800;margin-bottom:12px">Готовы начать?</h2><p style="opacity:.9;margin-bottom:24px">Присоединяйтесь к 10 000+ довольных клиентов</p><button style="padding:14px 36px;background:#fff;color:#f5576c;border:none;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer">Начать сейчас</button></section>`},
+  {id:'offer',cat:'commerce',name:'Special Offer',icon:'🎁',html:()=>`<section style="padding:30px 40px;background:#fff3cd;border:2px dashed #ffc107;margin:20px 40px;border-radius:12px;text-align:center"><div style="font-size:28px">🎁</div><h3 style="color:#856404;margin:8px 0">Скидка 50%!</h3><p style="font-size:13px;color:#856404">Только до конца месяца. Используйте промокод: <b>SALE50</b></p></section>`},
+  {id:'cart',cat:'commerce',name:'Shopping Cart',icon:'🛒',html:()=>`<section style="padding:30px 40px;max-width:600px;margin:0 auto"><h3 style="margin-bottom:16px">🛒 Корзина</h3><div style="border:1px solid #eee;border-radius:10px;overflow:hidden"><div style="display:flex;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #eee"><span>Товар 1</span><b>990₽</b></div><div style="display:flex;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #eee"><span>Товар 2</span><b>1 490₽</b></div><div style="display:flex;justify-content:space-between;padding:12px 16px;background:#f8f8ff;font-weight:700"><span>Итого</span><span style="color:#6366f1">2 480₽</span></div></div></section>`},
+
+  // Social Proof
+  {id:'testimonials',cat:'proof',name:'Testimonials',icon:'⭐',html:()=>`<section style="padding:50px 40px;text-align:center;background:#f8f8ff"><h2 style="font-size:28px;font-weight:800;margin-bottom:30px;color:#1a1a2e">Отзывы клиентов</h2><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">${['Отличный сервис! Рекомендую.|Алексей К.','Быстро и качественно.|Мария С.','Лучшее решение на рынке.|Дмитрий В.'].map(t=>{const[r,n]=t.split('|');return`<div style="background:#fff;padding:24px;border-radius:12px;box-shadow:0 2px 10px #0001"><div style="color:#f59e0b;margin-bottom:8px">★★★★★</div><p style="font-size:13px;color:#666;margin-bottom:12px">"${r}"</p><b style="font-size:12px">${n}</b></div>`}).join('')}</div></section>`},
+  {id:'reviews',cat:'proof',name:'Reviews',icon:'💬',html:()=>`<section style="padding:40px;text-align:center"><h3 style="margin-bottom:20px">Отзывы</h3><div style="max-width:500px;margin:0 auto;background:#f8f8ff;padding:30px;border-radius:16px"><div style="color:#f59e0b;font-size:20px">★★★★★</div><p style="font-size:15px;margin:12px 0;color:#444;font-style:italic">"Невероятный продукт. Полностью изменил наш подход к работе."</p><b>— Иван П., CEO TechCorp</b><div style="margin-top:12px;font-size:12px;color:#999">◀ 1/5 ▶</div></div></section>`},
+  {id:'client_logos',cat:'proof',name:'Client Logos',icon:'🏢',html:()=>`<section style="padding:30px 40px;text-align:center"><p style="font-size:12px;color:#999;margin-bottom:16px">Наши клиенты</p><div style="display:flex;justify-content:center;gap:30px;flex-wrap:wrap">${['🏦 Банк','🏥 Клиника','🏫 Университет','🏬 Ритейл','🏭 Завод'].map(n=>`<div style="padding:12px 20px;background:#f5f5f5;border-radius:8px;font-size:13px;color:#666">${n}</div>`).join('')}</div></section>`},
+  {id:'rating',cat:'proof',name:'Rating',icon:'⭐',html:()=>`<div style="padding:30px 40px;text-align:center"><div style="font-size:48px;font-weight:800;color:#6366f1">4.9</div><div style="color:#f59e0b;font-size:24px">★★★★★</div><p style="font-size:13px;color:#888;margin-top:4px">На основе 2,847 отзывов</p></div>`},
+
+  // Media
+  {id:'gallery',cat:'media',name:'Gallery',icon:'🖼',html:()=>`<section style="padding:40px"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">${[1,2,3,4,5,6].map(i=>`<div style="height:150px;background:linear-gradient(${i*45}deg,#667eea,#764ba2);border-radius:8px"></div>`).join('')}</div></section>`},
+  {id:'video',cat:'media',name:'Video',icon:'▶️',html:()=>`<section style="padding:40px;text-align:center"><div style="max-width:700px;margin:0 auto;background:#000;border-radius:12px;padding:60px;position:relative"><div style="font-size:48px">▶️</div><p style="color:#fff;margin-top:12px;font-size:14px">Нажмите для воспроизведения</p></div></section>`},
+  {id:'slider',cat:'media',name:'Slider',icon:'🎞',html:()=>`<section style="padding:40px"><div style="height:250px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:12px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;color:#fff"><span style="font-size:24px;cursor:pointer">◀</span><span style="font-size:16px">Слайд 1 / 5</span><span style="font-size:24px;cursor:pointer">▶</span></div></section>`},
+  {id:'lightbox',cat:'media',name:'Lightbox',icon:'🔍',html:()=>`<section style="padding:40px"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">${[1,2,3,4].map(i=>`<div style="height:120px;background:linear-gradient(${i*60}deg,#a8edea,#fed6e3);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:20px">🔍</div>`).join('')}</div></section>`},
+  {id:'before_after',cat:'media',name:'Before/After',icon:'↔️',html:()=>`<section style="padding:40px"><div style="display:flex;max-width:700px;margin:0 auto;border-radius:12px;overflow:hidden"><div style="flex:1;height:200px;background:linear-gradient(135deg,#ccc,#999);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700">ДО</div><div style="flex:1;height:200px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700">ПОСЛЕ</div></div></section>`},
+  {id:'icon_box',cat:'media',name:'Icon Box',icon:'🎯',html:()=>`<div style="padding:40px;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center">${['🚀 Скорость','🔒 Защита','💡 Идеи','🎯 Точность'].map(i=>{const[ic,t]=i.split(' ');return`<div style="padding:20px;background:#f8f8ff;border-radius:10px"><div style="font-size:32px;margin-bottom:6px">${ic}</div><span style="font-size:12px;font-weight:600">${t}</span></div>`}).join('')}</div>`},
+  {id:'audio',cat:'media',name:'Audio',icon:'🎵',html:()=>`<div style="padding:20px 40px;max-width:600px;margin:0 auto"><div style="background:#f8f8ff;border-radius:12px;padding:16px;display:flex;align-items:center;gap:12px"><button style="width:40px;height:40px;border-radius:50%;background:#6366f1;color:#fff;border:none;font-size:16px;cursor:pointer">▶</button><div style="flex:1"><div style="height:4px;background:#ddd;border-radius:2px"><div style="width:35%;height:100%;background:#6366f1;border-radius:2px"></div></div><div style="display:flex;justify-content:space-between;font-size:10px;color:#999;margin-top:4px"><span>1:23</span><span>3:45</span></div></div></div></div>`},
+
+  // Forms
+  {id:'contact_form',cat:'forms',name:'Contact Form',icon:'📧',html:()=>`<section style="padding:50px 40px;max-width:500px;margin:0 auto"><h2 style="font-size:24px;font-weight:800;margin-bottom:20px;text-align:center;color:#1a1a2e">Связаться с нами</h2><input style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ddd;border-radius:8px;font-size:14px" placeholder="Ваше имя"><input style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ddd;border-radius:8px;font-size:14px" placeholder="Email"><textarea style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ddd;border-radius:8px;font-size:14px;height:100px" placeholder="Сообщение"></textarea><button style="width:100%;padding:14px;background:#6366f1;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer">Отправить</button></section>`},
+  {id:'subscribe',cat:'forms',name:'Subscribe',icon:'📬',html:()=>`<section style="padding:40px;text-align:center;background:#f8f8ff"><h3 style="margin-bottom:12px;color:#1a1a2e">Подпишитесь на рассылку</h3><div style="display:flex;gap:8px;max-width:400px;margin:0 auto"><input style="flex:1;padding:12px;border:1px solid #ddd;border-radius:8px" placeholder="Ваш email"><button style="padding:12px 24px;background:#6366f1;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer">OK</button></div></section>`},
+  {id:'login',cat:'forms',name:'Login',icon:'🔐',html:()=>`<section style="padding:50px 40px;max-width:380px;margin:0 auto"><div style="background:#fff;padding:30px;border-radius:16px;box-shadow:0 4px 20px #0001"><h3 style="text-align:center;margin-bottom:20px">Вход</h3><input style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ddd;border-radius:8px" placeholder="Email"><input type="password" style="width:100%;padding:12px;margin-bottom:16px;border:1px solid #ddd;border-radius:8px" placeholder="Пароль"><button style="width:100%;padding:12px;background:#6366f1;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer">Войти</button></div></section>`},
+  {id:'register',cat:'forms',name:'Register',icon:'📋',html:()=>`<section style="padding:50px 40px;max-width:380px;margin:0 auto"><div style="background:#fff;padding:30px;border-radius:16px;box-shadow:0 4px 20px #0001"><h3 style="text-align:center;margin-bottom:20px">Регистрация</h3><input style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ddd;border-radius:8px" placeholder="Имя"><input style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ddd;border-radius:8px" placeholder="Email"><input type="password" style="width:100%;padding:12px;margin-bottom:16px;border:1px solid #ddd;border-radius:8px" placeholder="Пароль"><button style="width:100%;padding:12px;background:#22c55e;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer">Создать аккаунт</button></div></section>`},
+  {id:'search_bar',cat:'forms',name:'Search',icon:'🔍',html:()=>`<div style="padding:20px 40px"><div style="max-width:600px;margin:0 auto;display:flex;gap:8px"><input style="flex:1;padding:14px 18px;border:2px solid #6366f1;border-radius:10px;font-size:15px" placeholder="Поиск..."><button style="padding:14px 24px;background:#6366f1;color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer">🔍</button></div></div>`},
+  {id:'multistep',cat:'forms',name:'Multi-step',icon:'📊',html:()=>`<section style="padding:40px;max-width:500px;margin:0 auto"><div style="display:flex;justify-content:center;gap:4px;margin-bottom:20px">${[1,2,3].map(i=>`<div style="width:80px;height:4px;border-radius:2px;background:${i===1?'#6366f1':'#ddd'}"></div>`).join('')}</div><h3 style="text-align:center;margin-bottom:16px">Шаг 1 из 3</h3><input style="width:100%;padding:12px;margin-bottom:10px;border:1px solid #ddd;border-radius:8px" placeholder="Имя"><input style="width:100%;padding:12px;margin-bottom:16px;border:1px solid #ddd;border-radius:8px" placeholder="Фамилия"><button style="width:100%;padding:12px;background:#6366f1;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer">Далее →</button></section>`},
+
+  // Data
+  {id:'table',cat:'data',name:'Table',icon:'📊',html:()=>`<section style="padding:30px 40px"><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#f8f8ff"><th style="padding:10px;text-align:left;border-bottom:2px solid #eee">Имя</th><th style="padding:10px;text-align:left;border-bottom:2px solid #eee">Email</th><th style="padding:10px;text-align:left;border-bottom:2px solid #eee">Роль</th></tr></thead><tbody>${['Алексей|alex@mail.ru|Admin','Мария|maria@mail.ru|User','Дмитрий|dima@mail.ru|Editor'].map(r=>{const c=r.split('|');return`<tr><td style="padding:10px;border-bottom:1px solid #eee">${c[0]}</td><td style="padding:10px;border-bottom:1px solid #eee">${c[1]}</td><td style="padding:10px;border-bottom:1px solid #eee">${c[2]}</td></tr>`}).join('')}</tbody></table></section>`},
+  {id:'faq',cat:'data',name:'FAQ',icon:'❓',html:()=>`<section style="padding:40px;max-width:700px;margin:0 auto"><h2 style="font-size:26px;font-weight:800;margin-bottom:20px;text-align:center;color:#1a1a2e">FAQ</h2>${['Как начать?|Зарегистрируйтесь и выберите тариф','Есть бесплатный план?|Да, с базовым функционалом','Как связаться?|Через форму или email'].map(q=>{const[qu,a]=q.split('|');return`<details style="margin-bottom:8px;background:#f8f8ff;border-radius:8px;padding:14px"><summary style="cursor:pointer;font-weight:600;font-size:14px">${qu}</summary><p style="margin-top:8px;font-size:13px;color:#666">${a}</p></details>`}).join('')}</section>`},
+  {id:'tabs',cat:'data',name:'Tabs',icon:'📑',html:()=>`<section style="padding:30px 40px;max-width:700px;margin:0 auto"><div style="display:flex;gap:0;border-bottom:2px solid #eee;margin-bottom:16px">${['Описание','Характеристики','Отзывы'].map((t,i)=>`<div style="padding:10px 20px;cursor:pointer;border-bottom:2px solid ${i===0?'#6366f1':'transparent'};color:${i===0?'#6366f1':'#888'};font-size:13px;font-weight:600">${t}</div>`).join('')}</div><p style="font-size:14px;color:#555;line-height:1.7">Содержимое первой вкладки. Здесь может быть любой контент.</p></section>`},
+  {id:'progress',cat:'data',name:'Progress',icon:'📶',html:()=>`<section style="padding:30px 40px;max-width:600px;margin:0 auto">${['HTML|90','CSS|85','JavaScript|75','React|70'].map(p=>{const[n,v]=p.split('|');return`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>${n}</span><span>${v}%</span></div><div style="height:8px;background:#eee;border-radius:4px"><div style="height:100%;width:${v}%;background:linear-gradient(90deg,#6366f1,#818cf8);border-radius:4px"></div></div></div>`}).join('')}</section>`},
+  {id:'charts',cat:'data',name:'Charts',icon:'📈',html:()=>`<section style="padding:40px;text-align:center"><h3 style="margin-bottom:16px">Статистика</h3><div style="display:flex;align-items:flex-end;justify-content:center;gap:12px;height:150px">${[40,70,55,90,65,80,45].map((h,i)=>`<div style="width:30px;height:${h}%;background:linear-gradient(180deg,#6366f1,#818cf8);border-radius:4px 4px 0 0"></div>`).join('')}</div><div style="font-size:11px;color:#999;margin-top:8px">Пн Вт Ср Чт Пт Сб Вс</div></section>`},
+
+  // Telegram
+  {id:'bot_cmd',cat:'telegram',name:'Bot Commands',icon:'🤖',html:()=>`<section style="padding:30px 40px;max-width:500px;margin:0 auto"><div style="background:#0088cc11;border:1px solid #0088cc33;border-radius:12px;padding:20px"><h3 style="color:#0088cc;margin-bottom:12px">🤖 Telegram Bot Commands</h3>${['/start — Приветствие','/help — Помощь','/menu — Главное меню','/order — Оформить заказ'].map(c=>`<div style="padding:6px 0;font-family:monospace;font-size:13px;color:#333">${c}</div>`).join('')}<pre style="background:#1e1e3a;color:#e0e0ff;padding:12px;border-radius:8px;font-size:11px;margin-top:12px;overflow-x:auto">@bot.message_handler(commands=['start'])
+def start(message):
+    bot.reply_to(message, "Привет!")</pre></div></section>`},
+  {id:'bot_keyboard',cat:'telegram',name:'Inline Keyboard',icon:'⌨️',html:()=>`<section style="padding:30px 40px;max-width:400px;margin:0 auto"><div style="background:#e8f4f8;border-radius:16px;padding:16px"><div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:8px"><p style="font-size:13px">Выберите действие:</p></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">${['📦 Каталог','💰 Цены','📞 Связаться','ℹ️ О нас'].map(b=>`<div style="background:#0088cc;color:#fff;padding:8px;text-align:center;border-radius:6px;font-size:12px">${b}</div>`).join('')}</div></div></section>`},
+  {id:'bot_reply',cat:'telegram',name:'Reply Keyboard',icon:'📱',html:()=>`<section style="padding:30px 40px;max-width:400px;margin:0 auto"><div style="background:#e8f4f8;border-radius:16px;padding:16px"><div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:8px"><p style="font-size:13px">Главное меню:</p></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">${['📦 Каталог','🛒 Корзина','📞 Поддержка','⚙️ Настройки'].map(b=>`<div style="background:#e0e0e0;padding:10px;text-align:center;border-radius:8px;font-size:12px">${b}</div>`).join('')}</div></div></section>`},
+  {id:'bot_send',cat:'telegram',name:'Bot Message',icon:'💬',html:()=>`<section style="padding:30px 40px;max-width:400px;margin:0 auto"><div style="background:#e8f4f8;border-radius:16px;padding:16px"><div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:4px"><p style="font-size:12px;color:#0088cc;font-weight:600">Bot</p><p style="font-size:13px">Ваш заказ #1234 оформлен!\n\n📦 Статус: В обработке\n📅 Доставка: 2-3 дня\n💰 Сумма: 2 990₽</p></div><div style="background:#dcf8c6;border-radius:12px;padding:12px;margin-left:40px"><p style="font-size:13px">Спасибо!</p></div></div></section>`},
+  {id:'bot_webhook',cat:'telegram',name:'Webhook',icon:'🔗',html:()=>`<section style="padding:30px 40px;max-width:500px;margin:0 auto"><div style="background:#f8f8ff;border:1px solid #ddd;border-radius:12px;padding:20px"><h3 style="margin-bottom:12px">🔗 Webhook Config</h3><div style="font-size:12px;color:#666;margin-bottom:12px">URL: <code style="background:#eee;padding:2px 6px;border-radius:4px">https://api.telegram.org/bot{TOKEN}/setWebhook</code></div><pre style="background:#1e1e3a;color:#e0e0ff;padding:12px;border-radius:8px;font-size:11px;overflow-x:auto">import telebot\nbot = telebot.TeleBot(TOKEN)\n\nfrom flask import Flask, request\napp = Flask(__name__)\n\n@app.route('/webhook', methods=['POST'])\ndef webhook():\n    update = telebot.types.Update.de_json(\n        request.get_json()\n    )\n    bot.process_new_updates([update])\n    return 'ok'</pre></div></section>`},
+  {id:'bot_menu',cat:'telegram',name:'Menu Builder',icon:'🗂',html:()=>`<section style="padding:30px 40px;max-width:500px;margin:0 auto"><div style="background:#0088cc11;border:1px solid #0088cc33;border-radius:12px;padding:20px"><h3 style="color:#0088cc;margin-bottom:12px">🗂 Bot Menu Builder</h3><div style="border:1px solid #ddd;border-radius:8px;overflow:hidden">${['🏠 Главная → /start','📦 Каталог → /catalog','💰 Цены → /prices','📞 Поддержка → /support','⚙️ Настройки → /settings'].map(m=>`<div style="padding:10px 14px;border-bottom:1px solid #eee;font-size:12px;display:flex;justify-content:space-between"><span>${m.split('→')[0]}</span><code style="color:#0088cc">${m.split('→')[1]}</code></div>`).join('')}</div></div></section>`},
+
+  // AI
+  {id:'ai_text',cat:'ai',name:'AI Text Gen',icon:'📝',html:()=>`<section style="padding:30px 40px;max-width:500px;margin:0 auto"><div style="background:linear-gradient(135deg,#667eea11,#764ba211);border:1px solid #6366f133;border-radius:12px;padding:20px"><h3 style="color:#6366f1;margin-bottom:12px">🧠 AI Text Generator</h3><textarea style="width:100%;height:60px;padding:10px;border:1px solid #ddd;border-radius:8px;margin-bottom:8px;font-size:12px" placeholder="Опишите что нужно написать..."></textarea><button style="padding:8px 20px;background:#6366f1;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer">✨ Сгенерировать</button><div style="margin-top:12px;padding:12px;background:#fff;border-radius:8px;font-size:13px;color:#444">AI сгенерирует текст здесь...</div></div></section>`},
+  {id:'ai_img',cat:'ai',name:'AI Image Gen',icon:'🎨',html:()=>`<section style="padding:30px 40px;max-width:500px;margin:0 auto"><div style="background:linear-gradient(135deg,#f093fb11,#f5576c11);border:1px solid #ec489933;border-radius:12px;padding:20px"><h3 style="color:#ec4899;margin-bottom:12px">🎨 AI Image Generator</h3><input style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;margin-bottom:8px;font-size:12px" placeholder="Опишите изображение..."><button style="padding:8px 20px;background:#ec4899;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer">🖼 Сгенерировать</button><div style="margin-top:12px;height:200px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff">AI Image Preview</div></div></section>`},
+  {id:'ai_chat',cat:'ai',name:'AI Chatbot',icon:'💬',html:()=>`<section style="padding:30px 40px;max-width:400px;margin:0 auto"><div style="background:#fff;border-radius:16px;box-shadow:0 4px 20px #0001;overflow:hidden"><div style="background:#6366f1;color:#fff;padding:14px;font-weight:700;display:flex;align-items:center;gap:8px"><span>🤖</span> AI Ассистент</div><div style="padding:16px;min-height:150px"><div style="background:#f0f0ff;padding:10px;border-radius:10px;font-size:12px;margin-bottom:8px">Привет! Чем могу помочь?</div><div style="background:#6366f1;color:#fff;padding:10px;border-radius:10px;font-size:12px;margin-left:40px">Расскажи о ценах</div></div><div style="padding:12px;border-top:1px solid #eee;display:flex;gap:8px"><input style="flex:1;padding:8px;border:1px solid #ddd;border-radius:8px;font-size:12px" placeholder="Написать..."><button style="padding:8px 12px;background:#6366f1;color:#fff;border:none;border-radius:8px;cursor:pointer">→</button></div></div></section>`},
+  {id:'ai_rewrite',cat:'ai',name:'AI Rewriter',icon:'✏️',html:()=>`<section style="padding:30px 40px;max-width:500px;margin:0 auto"><div style="background:#f8f8ff;border:1px solid #ddd;border-radius:12px;padding:20px"><h3 style="margin-bottom:12px">✏️ AI Content Rewriter</h3><textarea style="width:100%;height:60px;padding:10px;border:1px solid #ddd;border-radius:8px;margin-bottom:8px;font-size:12px" placeholder="Вставьте текст для переписывания..."></textarea><div style="display:flex;gap:4px;margin-bottom:8px">${['Формально','Просто','Кратко','Развёрнуто'].map(s=>`<span style="padding:4px 10px;background:#e0e0ff;border-radius:12px;font-size:10px;cursor:pointer">${s}</span>`).join('')}</div><button style="padding:8px 20px;background:#6366f1;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer">✨ Переписать</button></div></section>`},
+  {id:'ai_seo',cat:'ai',name:'AI SEO',icon:'📊',html:()=>`<section style="padding:30px 40px;max-width:500px;margin:0 auto"><div style="background:#f8fff8;border:1px solid #22c55e33;border-radius:12px;padding:20px"><h3 style="color:#22c55e;margin-bottom:12px">📊 AI SEO Optimizer</h3><div style="margin-bottom:10px"><span style="font-size:11px;color:#888">SEO Score</span><div style="height:8px;background:#eee;border-radius:4px;margin-top:4px"><div style="height:100%;width:78%;background:#22c55e;border-radius:4px"></div></div><span style="font-size:11px;color:#22c55e">78/100</span></div>${['✅ Title оптимизирован','✅ Meta description есть','⚠️ H1 слишком длинный','❌ Alt у изображений пуст'].map(s=>`<div style="font-size:12px;padding:4px 0">${s}</div>`).join('')}</div></section>`},
+  {id:'ai_translate',cat:'ai',name:'AI Translate',icon:'🌍',html:()=>`<section style="padding:30px 40px;max-width:500px;margin:0 auto"><div style="background:#f8f8ff;border:1px solid #ddd;border-radius:12px;padding:20px"><h3 style="margin-bottom:12px">🌍 AI Translator</h3><div style="display:flex;gap:8px;margin-bottom:10px"><select style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:12px"><option>Русский</option></select><span style="padding:8px">→</span><select style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:12px"><option>English</option></select></div><textarea style="width:100%;height:50px;padding:10px;border:1px solid #ddd;border-radius:8px;margin-bottom:8px;font-size:12px" placeholder="Текст для перевода..."></textarea><button style="padding:8px 20px;background:#6366f1;color:#fff;border:none;border-radius:6px;font-size:12px;cursor:pointer">🌍 Перевести</button></div></section>`},
+  {id:'ai_form',cat:'ai',name:'AI Form Fill',icon:'🤖',html:()=>`<section style="padding:30px 40px;max-width:500px;margin:0 auto"><div style="background:#fff8f0;border:1px solid #f9731633;border-radius:12px;padding:20px"><h3 style="color:#f97316;margin-bottom:12px">🤖 AI Auto-Fill</h3><p style="font-size:12px;color:#888;margin-bottom:12px">AI автоматически заполнит формы на основе контекста</p><div style="display:flex;gap:8px;flex-wrap:wrap">${['📧 Email','👤 Имя','📞 Телефон','🏠 Адрес'].map(f=>`<span style="padding:6px 12px;background:#fff;border:1px solid #f97316;border-radius:16px;font-size:11px;color:#f97316">${f}</span>`).join('')}</div></div></section>`},
+
+  // Messengers
+  {id:'whatsapp',cat:'msg',name:'WhatsApp',icon:'💚',html:()=>`<div style="padding:20px 40px;text-align:center"><a href="#" style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:#25d366;color:#fff;border-radius:10px;text-decoration:none;font-weight:700">💬 Написать в WhatsApp</a></div>`},
+  {id:'tg_widget',cat:'msg',name:'Telegram',icon:'✈️',html:()=>`<div style="padding:20px 40px;text-align:center"><a href="#" style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:#0088cc;color:#fff;border-radius:10px;text-decoration:none;font-weight:700">✈️ Telegram канал</a></div>`},
+  {id:'viber',cat:'msg',name:'Viber',icon:'💜',html:()=>`<div style="padding:20px 40px;text-align:center"><a href="#" style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:#7360f2;color:#fff;border-radius:10px;text-decoration:none;font-weight:700">💜 Написать в Viber</a></div>`},
+  {id:'fb_msg',cat:'msg',name:'Messenger',icon:'💙',html:()=>`<div style="padding:20px 40px;text-align:center"><a href="#" style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:#0084ff;color:#fff;border-radius:10px;text-decoration:none;font-weight:700">💙 Facebook Messenger</a></div>`},
+  {id:'live_chat',cat:'msg',name:'Live Chat',icon:'💬',html:()=>`<div style="position:relative;height:60px"><div style="position:absolute;bottom:10px;right:20px;width:56px;height:56px;border-radius:50%;background:#6366f1;display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;cursor:pointer;box-shadow:0 4px 12px #6366f155">💬</div></div>`},
+
+  // Payments
+  {id:'pay_btn',cat:'pay',name:'Payment',icon:'💳',html:()=>`<div style="padding:30px 40px;text-align:center"><button style="padding:16px 40px;background:#1a1a2e;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer">💳 Оплатить 2 990₽</button><p style="font-size:11px;color:#999;margin-top:8px">Visa, MasterCard, МИР, СБП</p></div>`},
+  {id:'donate',cat:'pay',name:'Donation',icon:'❤️',html:()=>`<section style="padding:30px 40px;max-width:400px;margin:0 auto;text-align:center"><div style="background:#fff0f5;border-radius:16px;padding:24px"><div style="font-size:32px;margin-bottom:8px">❤️</div><h3>Поддержите проект</h3><div style="display:flex;gap:8px;justify-content:center;margin:16px 0">${['100₽','500₽','1000₽'].map(a=>`<button style="padding:10px 20px;background:#fff;border:2px solid #ec4899;color:#ec4899;border-radius:8px;cursor:pointer;font-weight:700">${a}</button>`).join('')}</div><input style="width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;text-align:center" placeholder="Своя сумма"></div></section>`},
+  {id:'calc',cat:'pay',name:'Calculator',icon:'🧮',html:()=>`<section style="padding:30px 40px;max-width:400px;margin:0 auto"><div style="background:#f8f8ff;border-radius:16px;padding:24px"><h3 style="margin-bottom:16px;text-align:center">🧮 Калькулятор стоимости</h3><div class="fg"><label style="font-size:12px;color:#888">Количество страниц</label><input type="range" style="width:100%"><span style="font-size:12px">5</span></div><div class="fg"><label style="font-size:12px;color:#888">Тип дизайна</label><select style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px"><option>Шаблонный</option><option>Уникальный</option></select></div><div style="text-align:center;margin-top:16px;font-size:28px;font-weight:800;color:#6366f1">14 900₽</div></div></section>`},
+  {id:'order_form',cat:'pay',name:'Order Form',icon:'📋',html:()=>`<section style="padding:30px 40px;max-width:500px;margin:0 auto"><h3 style="margin-bottom:16px;text-align:center">📋 Оформление заказа</h3><input style="width:100%;padding:10px;margin-bottom:8px;border:1px solid #ddd;border-radius:8px" placeholder="ФИО"><input style="width:100%;padding:10px;margin-bottom:8px;border:1px solid #ddd;border-radius:8px" placeholder="Телефон"><input style="width:100%;padding:10px;margin-bottom:8px;border:1px solid #ddd;border-radius:8px" placeholder="Адрес доставки"><textarea style="width:100%;padding:10px;margin-bottom:8px;border:1px solid #ddd;border-radius:8px;height:60px" placeholder="Комментарий"></textarea><button style="width:100%;padding:14px;background:#22c55e;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer">✅ Оформить заказ</button></section>`},
+
+  // Analytics
+  {id:'analytics',cat:'analytics',name:'Analytics',icon:'📈',html:()=>`<section style="padding:30px 40px"><div style="background:#f8f8ff;border-radius:12px;padding:20px"><h3 style="margin-bottom:16px">📈 Analytics Dashboard</h3><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">${['👁 12,847|Просмотры|+12%','👤 3,291|Посетители|+8%','📊 24.3%|Конверсия|+3%','💰 89,400₽|Доход|+15%'].map(s=>{const[v,l,c]=s.split('|');return`<div style="background:#fff;padding:14px;border-radius:8px;text-align:center"><div style="font-size:18px;font-weight:800">${v.split(' ')[1]}</div><div style="font-size:10px;color:#888">${l}</div><div style="font-size:10px;color:#22c55e">${c}</div></div>`}).join('')}</div></div></section>`},
+  {id:'visitor_count',cat:'analytics',name:'Visitors',icon:'👁',html:()=>`<div style="padding:20px 40px;text-align:center"><div style="display:inline-flex;align-items:center;gap:8px;background:#f8f8ff;padding:10px 20px;border-radius:20px;font-size:13px"><span style="width:8px;height:8px;border-radius:50%;background:#22c55e"></span> <b>127</b> онлайн сейчас</div></div>`},
+  {id:'heatmap',cat:'analytics',name:'Heatmap',icon:'🔥',html:()=>`<section style="padding:30px 40px"><div style="background:#f8f8ff;border-radius:12px;padding:20px;text-align:center"><h3 style="margin-bottom:12px">🔥 Тепловая карта кликов</h3><div style="height:200px;background:linear-gradient(180deg,#22c55e33,#f59e0b33,#ef444433);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#888">Heatmap Preview</div></div></section>`},
+
+  // Integrations
+  {id:'map',cat:'integrations',name:'Map',icon:'🗺',html:()=>`<section style="padding:30px 40px"><div style="height:250px;background:#e8f4f8;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:48px">🗺️</div><p style="text-align:center;font-size:12px;color:#888;margin-top:8px">Москва, ул. Примерная, 42</p></section>`},
+  {id:'social',cat:'integrations',name:'Social Links',icon:'🔗',html:()=>`<div style="padding:20px 40px;text-align:center;display:flex;justify-content:center;gap:12px">${['📘 Facebook','🐦 Twitter','📸 Instagram','💼 LinkedIn','📺 YouTube'].map(s=>`<a href="#" style="width:40px;height:40px;border-radius:50%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:16px" title="${s.split(' ')[1]}">${s.split(' ')[0]}</a>`).join('')}</div>`},
+  {id:'embed',cat:'integrations',name:'Embed',icon:'📎',html:()=>`<section style="padding:30px 40px"><div style="background:#f8f8ff;border:2px dashed #ddd;border-radius:12px;padding:40px;text-align:center"><div style="font-size:32px;margin-bottom:8px">📎</div><p style="color:#888;font-size:13px">Вставьте HTML/iframe код</p><textarea style="width:100%;height:60px;margin-top:12px;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:11px;font-family:monospace" placeholder="<iframe src=...></iframe>"></textarea></div></section>`},
+  {id:'calendar',cat:'integrations',name:'Calendar',icon:'📅',html:()=>`<section style="padding:30px 40px;max-width:500px;margin:0 auto"><div style="background:#fff;border-radius:12px;box-shadow:0 2px 12px #0001;padding:16px"><h3 style="margin-bottom:12px;text-align:center">📅 Март 2026</h3><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:11px">${['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(d=>`<div style="padding:6px;font-weight:700;color:#888">${d}</div>`).join('')}${Array.from({length:31},(_,i)=>`<div style="padding:6px;border-radius:4px;${i===14?'background:#6366f1;color:#fff':''}cursor:pointer">${i+1}</div>`).join('')}</div></div></section>`},
+  {id:'weather',cat:'integrations',name:'Weather',icon:'🌤',html:()=>`<div style="padding:20px 40px;text-align:center"><div style="display:inline-block;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border-radius:16px;padding:24px 36px"><div style="font-size:48px">☀️</div><div style="font-size:32px;font-weight:800">+18°C</div><div style="font-size:12px;opacity:.8">Москва • Ясно</div></div></div>`},
+
+  // Footer
+  {id:'footer_simple',cat:'footer',name:'Simple Footer',icon:'🔻',html:()=>`<footer style="background:#1a1a2e;color:#fff;padding:20px 40px;text-align:center;font-size:13px">© 2026 MySite. Все права защищены.</footer>`},
+  {id:'footer_cols',cat:'footer',name:'Footer Columns',icon:'📑',html:()=>`<footer style="background:#1a1a2e;color:#fff;padding:40px"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:30px"><div><h4 style="margin-bottom:12px">О компании</h4><div style="font-size:12px;color:#888;line-height:2">О нас<br>Команда<br>Карьера<br>Блог</div></div><div><h4 style="margin-bottom:12px">Продукты</h4><div style="font-size:12px;color:#888;line-height:2">Возможности<br>Тарифы<br>API<br>Статус</div></div><div><h4 style="margin-bottom:12px">Поддержка</h4><div style="font-size:12px;color:#888;line-height:2">FAQ<br>Документация<br>Контакты<br>Чат</div></div><div><h4 style="margin-bottom:12px">Контакты</h4><div style="font-size:12px;color:#888;line-height:2">info@mysite.ru<br>+7 (999) 123-45-67<br>Москва, ул. Главная, 1</div></div></div><div style="border-top:1px solid #333;margin-top:30px;padding-top:20px;text-align:center;font-size:11px;color:#666">© 2026 MySite. Все права защищены.</div></footer>`},
+  {id:'footer_cta',cat:'footer',name:'Footer CTA',icon:'🚀',html:()=>`<footer style="background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:50px 40px;text-align:center"><h2 style="font-size:28px;font-weight:800;margin-bottom:12px">Готовы начать?</h2><p style="opacity:.85;margin-bottom:24px">Создайте свой проект прямо сейчас</p><button style="padding:14px 36px;background:#fff;color:#764ba2;border:none;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer">Начать бесплатно</button><div style="margin-top:30px;font-size:11px;opacity:.5">© 2026 MySite</div></footer>`},
+
+  // Decor
+  {id:'gradient_sec',cat:'decor',name:'Gradient',icon:'🎨',html:()=>`<section style="height:120px;background:linear-gradient(135deg,#667eea,#764ba2,#ec4899)"></section>`},
+  {id:'parallax',cat:'decor',name:'Parallax',icon:'🏔',html:()=>`<section style="height:250px;background:linear-gradient(135deg,#0c0c1d,#1a1a3e);display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;font-weight:800">✨ Parallax Section</section>`},
+  {id:'counter',cat:'decor',name:'Counter',icon:'🔢',html:()=>`<section style="padding:40px;display:grid;grid-template-columns:repeat(3,1fr);gap:20px;text-align:center">${['1,247|Клиентов','98%|Довольны','24/7|Работаем'].map(s=>{const[n,l]=s.split('|');return`<div><div style="font-size:36px;font-weight:800;color:#6366f1">${n}</div><div style="font-size:12px;color:#888;margin-top:4px">${l}</div></div>`}).join('')}</section>`},
+  {id:'particles',cat:'decor',name:'Particles',icon:'✨',html:()=>`<section style="height:150px;background:#0a0a0f;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#fff"><div style="position:absolute;inset:0;background-image:radial-gradient(#6366f1 1px,transparent 1px);background-size:30px 30px;opacity:.3"></div><span style="position:relative;font-size:18px;font-weight:700">✨ Particle Background</span></section>`}
+];
+
+const CATS = [
+  {id:'nav',name:'🔝 Навигация',color:'#6366f1'},
+  {id:'hero',name:'🌟 Hero',color:'#ec4899'},
+  {id:'content',name:'📝 Контент',color:'#8b5cf6'},
+  {id:'sections',name:'🎯 Секции',color:'#f97316'},
+  {id:'commerce',name:'💰 Коммерция',color:'#22c55e'},
+  {id:'proof',name:'⭐ Соцдоказательство',color:'#f59e0b'},
+  {id:'media',name:'🖼 Медиа',color:'#06b6d4'},
+  {id:'forms',name:'📋 Формы',color:'#3b82f6'},
+  {id:'data',name:'📊 Данные',color:'#10b981'},
+  {id:'telegram',name:'🤖 Telegram Bot',color:'#0088cc'},
+  {id:'ai',name:'🧠 AI / Нейросети',color:'#8b5cf6'},
+  {id:'msg',name:'📱 Мессенджеры',color:'#25d366'},
+  {id:'pay',name:'💳 Платежи',color:'#1a1a2e'},
+  {id:'analytics',name:'📈 Аналитика',color:'#f97316'},
+  {id:'integrations',name:'🗺 Интеграции',color:'#06b6d4'},
+  {id:'footer',name:'🔻 Footer',color:'#475569'},
+  {id:'decor',name:'🎨 Декор',color:'#ec4899'}
+];
+
+// ============ STATE ============
+let comps = []; // [{id, type, html}]
+let selId = null;
+let undoStack = [], redoStack = [];
+let nextId = 1;
+
+// ============ INIT ============
+window.onload = () => {
+  renderCatList();
+  loadFromLS();
+  render();
+};
+
+function renderCatList() {
+  const el = document.getElementById('catList');
+  el.innerHTML = '';
+  CATS.forEach(cat => {
+    const items = C.filter(c => c.cat === cat.id);
+    const h = document.createElement('div');
+    h.className = 'cat-h';
+    h.innerHTML = `<span>${cat.name} (${items.length})</span><span>▼</span>`;
+    const list = document.createElement('div');
+    list.className = 'cat-items';
+    items.forEach(c => {
+      const d = document.createElement('div');
+      d.className = 'ci';
+      d.draggable = true;
+      d.innerHTML = `<div class="ic" style="background:${cat.color}22;color:${cat.color}">${c.icon}</div>${c.name}`;
+      d.addEventListener('dragstart', e => e.dataTransfer.setData('cid', c.id));
+      d.addEventListener('dblclick', () => addComp(c.id));
+      list.appendChild(d);
+    });
+    h.onclick = () => list.classList.toggle('hid');
+    el.appendChild(h);
+    el.appendChild(list);
+  });
+}
+
+function filterComps() {
+  const q = document.getElementById('searchInp').value.toLowerCase();
+  document.querySelectorAll('.cat-items').forEach(list => {
+    let any = false;
+    list.querySelectorAll('.ci').forEach(ci => {
+      const show = ci.textContent.toLowerCase().includes(q);
+      ci.style.display = show ? '' : 'none';
+      if (show) any = true;
+    });
+    list.previousElementSibling.style.display = any ? '' : 'none';
+    list.classList.toggle('hid', !any && q !== '');
+    if (any && q) list.classList.remove('hid');
+  });
+}
+
+// ============ COMPONENTS ============
+function addComp(typeId, idx) {
+  saveUndo();
+  const def = C.find(c => c.id === typeId);
+  if (!def) return;
+  const comp = { id: 'c' + (nextId++), type: typeId };
+  if (idx !== undefined) comps.splice(idx, 0, comp);
+  else comps.push(comp);
+  render();
+  selId = comp.id;
+  render();
+}
+
+function removeComp(id) {
+  saveUndo();
+  comps = comps.filter(c => c.id !== id);
+  if (selId === id) selId = null;
+  render();
+}
+
+function moveComp(id, dir) {
+  saveUndo();
+  const i = comps.findIndex(c => c.id === id);
+  if (i < 0) return;
+  const ni = i + dir;
+  if (ni < 0 || ni >= comps.length) return;
+  [comps[i], comps[ni]] = [comps[ni], comps[i]];
+  render();
+}
+
+function dupComp(id) {
+  saveUndo();
+  const i = comps.findIndex(c => c.id === id);
+  if (i < 0) return;
+  const nc = { id: 'c' + (nextId++), type: comps[i].type };
+  comps.splice(i + 1, 0, nc);
+  selId = nc.id;
+  render();
+}
+
+// ============ RENDER ============
+function render() {
+  const canvas = document.getElementById('canvas');
+  canvas.innerHTML = '';
+  if (comps.length === 0) {
+    canvas.innerHTML = '<div style="padding:80px 40px;text-align:center;color:#999"><div style="font-size:48px;margin-bottom:16px">🎨</div><h2 style="color:#666">Перетащите компоненты сюда</h2><p style="margin-top:8px">Или используйте AI для генерации сайта</p></div>';
+  }
+  comps.forEach(comp => {
+    const def = C.find(c => c.id === comp.type);
+    if (!def) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'comp' + (selId === comp.id ? ' sel' : '');
+    wrap.dataset.id = comp.id;
+    wrap.innerHTML = `<div class="comp-bar"><button onclick="event.stopPropagation();moveComp('${comp.id}',-1)" title="Вверх">▲</button><button onclick="event.stopPropagation();moveComp('${comp.id}',1)" title="Вниз">▼</button><button onclick="event.stopPropagation();dupComp('${comp.id}')" title="Дубликат">📋</button><button onclick="event.stopPropagation();removeComp('${comp.id}')" title="Удалить">🗑</button></div>${def.html()}`;
+    wrap.onclick = (e) => { if(!e.target.closest('.comp-bar')){selId=comp.id;render();updateProps();} };
+    canvas.appendChild(wrap);
+  });
+  // drop zone
+  canvas.addEventListener('dragover', e => e.preventDefault());
+  canvas.addEventListener('drop', e => {
+    e.preventDefault();
+    const cid = e.dataTransfer.getData('cid');
+    if (cid) addComp(cid);
+  });
+  updateProps();
+}
+
+function updateProps() {
+  const noSel = document.getElementById('noSel');
+  const fields = document.getElementById('propFields');
+  if (!selId) {
+    noSel.style.display = '';
+    fields.style.display = 'none';
+    return;
+  }
+  noSel.style.display = 'none';
+  fields.style.display = '';
+  const comp = comps.find(c => c.id === selId);
+  const def = C.find(c => c.id === comp?.type);
+  fields.innerHTML = `<div class="fg"><label>Компонент</label><input value="${def?.name||''}" disabled></div><div class="fg"><label>Тип</label><input value="${comp?.type||''}" disabled></div><div class="fg"><label>ID</label><input value="${comp?.id||''}" disabled></div><p style="font-size:11px;color:var(--tx2);margin-top:12px">💡 Нажмите на текст в компоненте чтобы редактировать прямо на странице</p>`;
+}
+
+// ============ UNDO/REDO ============
+function saveUndo() { undoStack.push(JSON.stringify(comps)); redoStack = []; }
+function undo() { if(!undoStack.length)return; redoStack.push(JSON.stringify(comps)); comps=JSON.parse(undoStack.pop()); render(); }
+function redo() { if(!redoStack.length)return; undoStack.push(JSON.stringify(comps)); comps=JSON.parse(redoStack.pop()); render(); }
+document.addEventListener('keydown', e => {
+  if(e.ctrlKey&&e.key==='z'){e.preventDefault();undo();}
+  if(e.ctrlKey&&e.key==='y'){e.preventDefault();redo();}
+  if(e.key==='Delete'&&selId){removeComp(selId);}
+});
+
+// ============ VIEW ============
+function setView(v) {
+  const c = document.getElementById('canvas');
+  c.classList.remove('tablet','mobile');
+  if(v==='t')c.classList.add('tablet');
+  if(v==='m')c.classList.add('mobile');
+}
+
+// ============ SAVE/LOAD ============
+function saveProj() {
+  const d = {name:document.getElementById('projName').value,comps,nextId};
+  localStorage.setItem('sb_proj',JSON.stringify(d));
+  alert('Сохранено!');
+}
+function loadProj() {
+  try{const d=JSON.parse(localStorage.getItem('sb_proj'));if(d){comps=d.comps;nextId=d.nextId||comps.length+1;document.getElementById('projName').value=d.name||'';render();alert('Загружено!');}}catch(e){alert('Нет сохранений');}
+}
+function loadFromLS() {
+  try{const d=JSON.parse(localStorage.getItem('sb_proj'));if(d){comps=d.comps||[];nextId=d.nextId||1;document.getElementById('projName').value=d.name||'';}}catch(e){}
+}
+
+// ============ EXPORT ============
+function exportHTML() {
+  let html = '<!DOCTYPE html>\n<html lang="ru">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>' + document.getElementById('projName').value + '</title>\n<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,sans-serif}</style>\n</head>\n<body>\n';
+  comps.forEach(comp => {
+    const def = C.find(c => c.id === comp.type);
+    if(def) html += def.html() + '\n';
+  });
+  html += '</body>\n</html>';
+  const blob = new Blob([html], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (document.getElementById('projName').value||'site') + '.html';
+  a.click();
+}
+
+// ============ TABS ============
+function rtab(t) {
+  document.querySelectorAll('.rtabs button').forEach(b=>b.classList.remove('act'));
+  document.querySelectorAll('.rpanel').forEach(p=>p.classList.remove('act'));
+  if(t==='props'){document.querySelector('.rtabs button:first-child').classList.add('act');document.getElementById('pProps').classList.add('act');}
+  else{document.querySelector('.rtabs button:last-child').classList.add('act');document.getElementById('pAI').classList.add('act');}
+}
+
+// ============ SETTINGS ============
+function openSettings() { 
+  document.getElementById('settingsModal').classList.add('show');
+  renderProviders();
+}
+function closeSettings() { document.getElementById('settingsModal').classList.remove('show'); }
+
+function renderProviders() {
+  const el = document.getElementById('providerList');
+  el.innerHTML = '';
+  PROVIDERS.forEach(p => {
+    el.innerHTML += `<div class="provider-card ${settings.provider===p.id?'active':''}" onclick="selectProvider('${p.id}')">
+      <h4>${p.name} ${p.free?'<span style="color:#22c55e;font-size:10px">FREE</span>':''}</h4>
+      <p>${p.desc}</p>
+      <p style="color:var(--ac);font-size:10px;margin-top:4px">📖 ${p.help}</p>
+    </div>`;
+  });
+  document.getElementById('apiKeyInp').value = settings.apiKey || '';
+  updateModels();
+}
+
+function selectProvider(id) {
+  settings.provider = id;
+  renderProviders();
+}
+
+function updateModels() {
+  const p = PROVIDERS.find(pr => pr.id === settings.provider);
+  const sel = document.getElementById('modelSel');
+  sel.innerHTML = '';
+  (p?.models||[]).forEach(m => { const o=document.createElement('option');o.value=m;o.textContent=m;sel.appendChild(o); });
+}
+
+function saveSettings() {
+  settings.apiKey = document.getElementById('apiKeyInp').value;
+  settings.model = document.getElementById('modelSel').value;
+  localStorage.setItem('sb_settings', JSON.stringify(settings));
+  closeSettings();
+  alert('Настройки сохранены!');
+}
+
+// ============ AI GEN ============
+function openAIGen() { document.getElementById('genModal').classList.add('show'); }
+function closeGen() { document.getElementById('genModal').classList.remove('show'); }
+
+const PALETTES = [
+  {primary:'#6366f1',accent:'#ec4899'},
+  {primary:'#22c55e',accent:'#06b6d4'},
+  {primary:'#f97316',accent:'#eab308'},
+  {primary:'#ef4444',accent:'#f97316'},
+  {primary:'#8b5cf6',accent:'#6366f1'},
+  {primary:'#0ea5e9',accent:'#6366f1'},
+  {primary:'#14b8a6',accent:'#22c55e'},
+  {primary:'#e11d48',accent:'#f43f5e'}
+];
+
+const KEYWORDS = {
+  nav: ['header','меню','навигация','шапка','nav'],
+  hero: ['hero','баннер','главная','главный','приветствие','первый экран','landing'],
+  features: ['функции','возможности','features','преимущества','фичи'],
+  about: ['о нас','about','компания','история','команда','team'],
+  pricing: ['цены','тарифы','pricing','стоимость','прайс'],
+  testimonials: ['отзывы','reviews','testimonials','клиенты','мнения'],
+  gallery: ['галерея','фото','портфолио','gallery','изображения'],
+  contact: ['контакт','форма','связь','написать','contact','обратная связь'],
+  products: ['товар','продукт','магазин','shop','каталог','карточк'],
+  blog: ['блог','статьи','новости'],
+  faq: ['faq','вопрос','ответ','чаво'],
+  telegram: ['telegram','телеграм','бот','bot'],
+  ai: ['ai','нейросет','ии','искусственн','chatbot','чат-бот'],
+  messenger: ['whatsapp','viber','мессенджер','вотсап'],
+  payment: ['оплат','плат','донат','корзин','заказ'],
+  subscribe: ['подписк','рассылк','email','subscribe'],
+  stats: ['статистик','цифр','counter','счётчик'],
+  footer: ['footer','подвал','низ']
+};
+
+const KEYWORD_TO_COMPS = {
+  nav: ['header'],
+  hero: ['hero_cta'],
+  features: ['features_grid'],
+  about: ['about','team'],
+  pricing: ['pricing'],
+  testimonials: ['testimonials'],
+  gallery: ['gallery'],
+  contact: ['contact_form'],
+  products: ['product_grid','cart'],
+  blog: ['rich_text'],
+  faq: ['faq'],
+  telegram: ['bot_cmd','bot_keyboard'],
+  ai: ['ai_chat','ai_text'],
+  messenger: ['whatsapp','tg_widget'],
+  payment: ['pay_btn','order_form'],
+  subscribe: ['subscribe'],
+  stats: ['stats'],
+  footer: ['footer_cols']
+};
+
+async function generateSite() {
+  const desc = document.getElementById('genDesc').value;
+  if(!desc){alert('Опишите сайт!');return;}
+  closeGen();
+  
+  if(settings.provider !== 'builtin' && settings.apiKey) {
+    await generateWithAI(desc);
+  } else {
+    generateBuiltin(desc);
+  }
+}
+
+function generateBuiltin(desc) {
+  saveUndo();
+  comps = [];
+  nextId = 1;
+  const lower = desc.toLowerCase();
+  let matched = new Set();
+  
+  // Always start with header
+  matched.add('header');
+  matched.add('hero_cta');
+  
+  Object.entries(KEYWORDS).forEach(([key, words]) => {
+    if(words.some(w => lower.includes(w))) {
+      KEYWORD_TO_COMPS[key]?.forEach(c => matched.add(c));
+    }
+  });
+  
+  // Always add footer
+  matched.add('footer_cols');
+  
+  // If nothing specific matched, add defaults
+  if(matched.size <= 3) {
+    ['features_grid','about','testimonials','contact_form'].forEach(c => matched.add(c));
+  }
+  
+  // Order: nav, hero, content, sections, commerce, proof, forms, footer
+  const order = ['header','sticky_nav','mega_menu','hero_cta','hero_full','hero_video','hero_slider','hero_form','features_grid','features_list','about','team','stats','steps','timeline','partners','product_grid','pricing','offer','cart','cta_banner','testimonials','reviews','client_logos','rating','gallery','video','slider','bot_cmd','bot_keyboard','bot_menu','ai_chat','ai_text','ai_img','ai_seo','whatsapp','tg_widget','faq','tabs','table','charts','analytics','contact_form','subscribe','order_form','login','map','social','calendar','weather','counter','footer_cols','footer_simple','footer_cta'];
+  
+  order.forEach(id => {
+    if(matched.has(id)) {
+      comps.push({id:'c'+(nextId++), type:id});
+    }
+  });
+  
+  render();
+  alert('Сайт сгенерирован! ' + comps.length + ' компонентов');
+}
+
+async function generateWithAI(desc) {
+  const compList = C.map(c => c.id).join(', ');
+  const prompt = `Ты конструктор сайтов. Пользователь просит: "${desc}". Выбери подходящие компоненты из списка и верни ТОЛЬКО JSON массив их id в правильном порядке. Доступные id: ${compList}. Ответь ТОЛЬКО JSON массивом, например: ["header","hero_cta","footer_cols"]`;
+  
+  try {
+    let result;
+    if(settings.provider === 'groq') {
+      const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+settings.apiKey},
+        body:JSON.stringify({model:settings.model,messages:[{role:'user',content:prompt}],temperature:0.3})
+      });
+      const d = await r.json();
+      result = d.choices?.[0]?.message?.content;
+    } else if(settings.provider === 'gemini') {
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${settings.model}:generateContent?key=${settings.apiKey}`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})
+      });
+      const d = await r.json();
+      result = d.candidates?.[0]?.content?.parts?.[0]?.text;
+    } else if(settings.provider === 'mistral') {
+      const r = await fetch('https://api.mistral.ai/v1/chat/completions', {
+        method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+settings.apiKey},
+        body:JSON.stringify({model:settings.model,messages:[{role:'user',content:prompt}]})
+      });
+      const d = await r.json();
+      result = d.choices?.[0]?.message?.content;
+    } else if(settings.provider === 'hf') {
+      const r = await fetch(`https://api-inference.huggingface.co/models/${settings.model}`, {
+        method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+settings.apiKey},
+        body:JSON.stringify({inputs:prompt,parameters:{max_new_tokens:500}})
+      });
+      const d = await r.json();
+      result = d[0]?.generated_text || JSON.stringify(d);
+    } else if(settings.provider === 'openrouter') {
+      const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+settings.apiKey},
+        body:JSON.stringify({model:settings.model,messages:[{role:'user',content:prompt}]})
+      });
+      const d = await r.json();
+      result = d.choices?.[0]?.message?.content;
+    } else if(settings.provider === 'ollama') {
+      const r = await fetch('http://localhost:11434/api/generate', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model:settings.model,prompt,stream:false})
+      });
+      const d = await r.json();
+      result = d.response;
+    }
+    
+    if(result) {
+      const match = result.match(/\[.*\]/s);
+      if(match) {
+        const ids = JSON.parse(match[0]);
+        saveUndo();
+        comps = [];
+        nextId = 1;
+        ids.forEach(id => {
+          if(C.find(c => c.id === id)) {
+            comps.push({id:'c'+(nextId++), type:id});
+          }
+        });
+        render();
+        alert('AI сгенерировал сайт! ' + comps.length + ' компонентов');
+        return;
+      }
+    }
+    alert('AI не смог разобрать ответ. Используем встроенный движок.');
+    generateBuiltin(desc);
+  } catch(e) {
+    alert('Ошибка AI: ' + e.message + '. Используем встроенный движок.');
+    generateBuiltin(desc);
+  }
+}
+
+// ============ AI CHAT ============
+function sendAI() {
+  const inp = document.getElementById('chatInp');
+  const msg = inp.value.trim();
+  if(!msg) return;
+  const msgs = document.getElementById('chatMsgs');
+  msgs.innerHTML += `<div class="msg u">${msg}</div>`;
+  inp.value = '';
+  
+  // Quick AI response
+  setTimeout(() => {
+    generateBuiltin(msg);
+    msgs.innerHTML += `<div class="msg a">✅ Готово! Добавил компоненты по вашему описанию. Можете перетаскивать, удалять и добавлять новые.</div>`;
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 500);
+}
+</script>
+</body>
+</html>
